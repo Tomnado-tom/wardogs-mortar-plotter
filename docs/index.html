@@ -370,17 +370,6 @@
   .compass .needle-back { stroke: var(--friendly); stroke-width: 2.5; stroke-linecap: round; }
   .compass .hub { fill: var(--brass-strong); }
 
-  footer {
-    margin-top: 26px;
-    font-size: 0.8rem;
-    color: var(--ink-muted);
-    line-height: 1.6;
-    border-top: 1px solid var(--line);
-    padding-top: 14px;
-  }
-
-  footer strong { color: var(--ink); }
-
   @media (prefers-reduced-motion: no-preference) {
     .tile-value { transition: color 0.15s ease; }
   }
@@ -485,9 +474,6 @@
   </div>
 </div>
 
-<footer>
-  <strong>Convention:</strong> coordinates are Wardogs map grid units, where 1 unit = 100&nbsp;m (1&nbsp;km = 10 cells) &mdash; range is converted to meters automatically. X increases east, Y increases north (a higher Y is further up the map); heading is measured clockwise from north (standard compass bearing), matching the game's azimuth. Values are saved in this browser only.
-</footer>
 
 <script>
   (function () {
