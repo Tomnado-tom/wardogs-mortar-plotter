@@ -97,6 +97,15 @@
     line-height: 1.5;
   }
 
+  .subhead code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+
   .board {
     display: grid;
     grid-template-columns: 1fr;
@@ -152,6 +161,10 @@
     grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
     gap: 12px;
   }
+
+  .paste-field { margin-bottom: 12px; }
+
+  .paste-field input::placeholder { color: var(--ink-muted); opacity: 0.7; }
 
   .field label {
     display: block;
@@ -379,13 +392,17 @@
 
 <div class="eyebrow">Wardogs</div>
 <h1>Mortar Plotter</h1>
-<p class="subhead">Enter your map grid position and the target's, in Wardogs coordinates (e.g. 97.13). Heading and range update live &mdash; heading is a compass bearing (0&ndash;360&deg;, clockwise from north), range is straight-line distance in meters.</p>
+<p class="subhead">Enter your map grid position and the target's, or paste them straight from the game (e.g. <code>x94.53, y109.03</code>). Heading and range update live &mdash; heading is a compass bearing (0&ndash;360&deg;, clockwise from north), range is straight-line distance in meters.</p>
 
 <div class="board">
   <div class="positions">
     <div class="pos-card force-friendly">
       <h2>My Position</h2>
       <p class="hint">Example values shown &mdash; replace with your grid coordinates (1 unit = 100&nbsp;m).</p>
+      <div class="field paste-field">
+        <label for="mePaste">Paste from game</label>
+        <input id="mePaste" type="text" placeholder="x94.53, y109.03" autocomplete="off">
+      </div>
       <div class="field-row">
         <div class="field">
           <label for="meX">X &middot; Easting</label>
@@ -411,6 +428,10 @@
     <div class="pos-card force-hostile">
       <h2>Target Position</h2>
       <p class="hint">Example values shown &mdash; replace with your grid coordinates (1 unit = 100&nbsp;m).</p>
+      <div class="field paste-field">
+        <label for="tgPaste">Paste from game</label>
+        <input id="tgPaste" type="text" placeholder="x94.53, y109.03" autocomplete="off">
+      </div>
       <div class="field-row">
         <div class="field">
           <label for="tgX">X &middot; Easting</label>
@@ -490,6 +511,8 @@
     var saveNameInput = document.getElementById('saveName');
     var savedPositions = document.getElementById('savedPositions');
     var savePosNameInput = document.getElementById('savePosName');
+    var mePasteInput = document.getElementById('mePaste');
+    var tgPasteInput = document.getElementById('tgPaste');
 
     var DEFAULTS = { meX: '50.00', meY: '40.00', tgX: '97.13', tgY: '65.56' };
     var STORE_KEY = 'mortar-plotter-v1';
@@ -499,6 +522,24 @@
     function num(el) {
       var v = parseFloat(el.value);
       return isNaN(v) ? 0 : v;
+    }
+
+    function parseCoords(str) {
+      var xMatch = str.match(/x\s*[:=]?\s*(-?\d+(?:\.\d+)?)/i);
+      var yMatch = str.match(/y\s*[:=]?\s*(-?\d+(?:\.\d+)?)/i);
+      if (!xMatch || !yMatch) return null;
+      return { x: xMatch[1], y: yMatch[1] };
+    }
+
+    function wirePasteField(pasteInput, xInput, yInput) {
+      pasteInput.addEventListener('input', function () {
+        var parsed = parseCoords(pasteInput.value);
+        if (!parsed) return;
+        xInput.value = parsed.x;
+        yInput.value = parsed.y;
+        pasteInput.value = '';
+        compute();
+      });
     }
 
     function compute() {
@@ -641,6 +682,9 @@
     Object.keys(els).forEach(function (k) {
       els[k].addEventListener('input', compute);
     });
+
+    wirePasteField(mePasteInput, els.meX, els.meY);
+    wirePasteField(tgPasteInput, els.tgX, els.tgY);
 
     document.getElementById('swapBtn').addEventListener('click', function () {
       var mx = els.meX.value, my = els.meY.value;
