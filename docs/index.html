@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mortar Plotter</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #ece7da;
+    --surface: #ffffff;
+    --surface-2: #f5f1e5;
+    --ink: #211f1a;
+    --ink-muted: #6b6456;
+    --line: #d8cfb8;
+    --friendly: #2c5d7c;
+    --friendly-ink: #1d3f54;
+    --hostile: #a6392b;
+    --hostile-ink: #7a281e;
+    --brass: #a56a17;
+    --brass-strong: #7d4f0f;
+    --focus: #2c5d7c;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15160f;
+      --surface: #1d1f16;
+      --surface-2: #23251a;
+      --ink: #ede7d6;
+      --ink-muted: #a29a86;
+      --line: #3a3b2b;
+      --friendly: #6fa8ce;
+      --friendly-ink: #9cc6e4;
+      --hostile: #e07a62;
+      --hostile-ink: #ef9a85;
+      --brass: #e3a94c;
+      --brass-strong: #f0bd6e;
+      --focus: #6fa8ce;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #15160f;
+    --surface: #1d1f16;
+    --surface-2: #23251a;
+    --ink: #ede7d6;
+    --ink-muted: #a29a86;
+    --line: #3a3b2b;
+    --friendly: #6fa8ce;
+    --friendly-ink: #9cc6e4;
+    --hostile: #e07a62;
+    --hostile-ink: #ef9a85;
+    --brass: #e3a94c;
+    --brass-strong: #f0bd6e;
+    --focus: #6fa8ce;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { color-scheme: light dark; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    padding-inline: 20px;
+    padding-block: 28px 48px;
+    max-width: 980px;
+    margin-inline: auto;
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--brass-strong);
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-family: "Rajdhani", system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    letter-spacing: 0.01em;
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+
+  .subhead {
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+    max-width: 60ch;
+    margin: 0 0 28px;
+    line-height: 1.5;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (min-width: 760px) {
+    .board {
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+    .solution {
+      position: sticky;
+      top: 20px;
+    }
+  }
+
+  .positions {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .pos-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--card-accent);
+    border-radius: 6px;
+    padding: 16px 18px 18px;
+  }
+
+  .pos-card.force-friendly { --card-accent: var(--friendly); }
+  .pos-card.force-hostile { --card-accent: var(--hostile); }
+
+  .pos-card h2 {
+    font-family: "Rajdhani", sans-serif;
+    font-weight: 600;
+    font-size: 1.15rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin: 0 0 2px;
+    color: var(--card-accent);
+  }
+
+  .pos-card .hint {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    margin: 0 0 14px;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+    gap: 12px;
+  }
+
+  .field label {
+    display: block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.1rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+    padding: 9px 10px;
+  }
+
+  .field input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar button {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+    padding: 9px 14px;
+    cursor: pointer;
+  }
+
+  .toolbar button:hover { border-color: var(--brass); color: var(--brass-strong); }
+  .toolbar button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  .pos-card.saved-card { --card-accent: var(--brass); }
+
+  .save-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .save-row input[type="text"] {
+    flex: 1;
+    min-width: 140px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.9rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+    padding: 9px 10px;
+  }
+
+  .save-row input[type="text"]:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  .save-row button,
+  .saved-row .load-btn {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+    padding: 9px 14px;
+    cursor: pointer;
+  }
+
+  .save-row button:hover,
+  .saved-row .load-btn:hover { border-color: var(--brass); color: var(--brass-strong); }
+  .save-row button:focus-visible,
+  .saved-row .load-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  .saved-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .saved-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 7px 8px 7px 12px;
+  }
+
+  .saved-row .info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+  .saved-row .name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .saved-row .coords {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+  }
+
+  .saved-row .actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+
+  .saved-row .del-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-muted);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 6px 8px;
+  }
+
+  .saved-row .del-btn:hover { color: var(--hostile); }
+  .saved-row .del-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  .empty-note { font-size: 0.82rem; color: var(--ink-muted); font-style: italic; padding: 2px 0; }
+
+  .solution {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .readout-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+    gap: 12px;
+  }
+
+  .tile {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 14px 12px 12px;
+    text-align: center;
+  }
+
+  .tile-label {
+    display: block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 4px;
+  }
+
+  .tile-value {
+    font-family: "Rajdhani", sans-serif;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(2.1rem, 7vw, 2.8rem);
+    color: var(--brass-strong);
+    line-height: 1;
+  }
+
+  .tile-unit {
+    font-family: "Rajdhani", sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ink-muted);
+    margin-left: 2px;
+  }
+
+  .compass-wrap {
+    display: flex;
+    justify-content: center;
+  }
+
+  .compass {
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+  }
+
+  .compass text {
+    font-family: "IBM Plex Mono", monospace;
+    fill: var(--ink-muted);
+  }
+
+  .compass .ring { fill: var(--surface-2); stroke: var(--line); }
+  .compass .tick { stroke: var(--line); }
+  .compass .needle { stroke: var(--hostile); stroke-width: 3; stroke-linecap: round; }
+  .compass .needle-back { stroke: var(--friendly); stroke-width: 2.5; stroke-linecap: round; }
+  .compass .hub { fill: var(--brass-strong); }
+
+  footer {
+    margin-top: 26px;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    line-height: 1.6;
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
+
+  footer strong { color: var(--ink); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .tile-value { transition: color 0.15s ease; }
+  }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Fire Direction</div>
+<h1>Mortar Plotter</h1>
+<p class="subhead">Enter your map grid position and the target's, in Wardogs coordinates (e.g. 97.13). Heading and range update live &mdash; heading is a compass bearing (0&ndash;360&deg;, clockwise from north), range is straight-line distance in meters.</p>
+
+<div class="board">
+  <div class="positions">
+    <div class="pos-card force-friendly">
+      <h2>My Position</h2>
+      <p class="hint">Example values shown &mdash; replace with your grid coordinates (1 unit = 100&nbsp;m).</p>
+      <div class="field-row">
+        <div class="field">
+          <label for="meX">X &middot; Easting</label>
+          <input id="meX" type="number" inputmode="decimal" step="any" value="50.00">
+        </div>
+        <div class="field">
+          <label for="meY">Y &middot; Northing</label>
+          <input id="meY" type="number" inputmode="decimal" step="any" value="40.00">
+        </div>
+      </div>
+    </div>
+
+    <div class="pos-card saved-card">
+      <h2>Saved Mortar Spots</h2>
+      <p class="hint">Save your current firing position so you don't have to retype it next time.</p>
+      <div class="save-row">
+        <input id="savePosName" type="text" placeholder="Name (e.g. Firebase Alpha)" maxlength="40">
+        <button id="savePositionBtn" type="button">Save Position</button>
+      </div>
+      <ul id="savedPositions" class="saved-list"></ul>
+    </div>
+
+    <div class="pos-card force-hostile">
+      <h2>Target Position</h2>
+      <p class="hint">Example values shown &mdash; replace with your grid coordinates (1 unit = 100&nbsp;m).</p>
+      <div class="field-row">
+        <div class="field">
+          <label for="tgX">X &middot; Easting</label>
+          <input id="tgX" type="number" inputmode="decimal" step="any" value="97.13">
+        </div>
+        <div class="field">
+          <label for="tgY">Y &middot; Northing</label>
+          <input id="tgY" type="number" inputmode="decimal" step="any" value="65.56">
+        </div>
+      </div>
+    </div>
+
+    <div class="pos-card saved-card">
+      <h2>Saved Targets</h2>
+      <p class="hint">Save the current target position so you don't have to retype it next time.</p>
+      <div class="save-row">
+        <input id="saveName" type="text" placeholder="Name (e.g. North Bunker)" maxlength="40">
+        <button id="saveTargetBtn" type="button">Save Target</button>
+      </div>
+      <ul id="savedList" class="saved-list"></ul>
+    </div>
+
+    <div class="toolbar">
+      <button id="swapBtn" type="button">Swap Me &harr; Target</button>
+      <button id="resetBtn" type="button">Reset to Example</button>
+    </div>
+  </div>
+
+  <div class="solution">
+    <div class="readout-tiles">
+      <div class="tile">
+        <span class="tile-label">Heading</span>
+        <span id="headingVal" class="tile-value">000</span><span class="tile-unit">&deg;</span>
+      </div>
+      <div class="tile">
+        <span class="tile-label">Range</span>
+        <span id="rangeVal" class="tile-value">0</span><span class="tile-unit">m</span>
+      </div>
+    </div>
+
+    <div class="compass-wrap">
+      <svg class="compass" viewBox="0 0 200 200" role="img" aria-label="Compass showing bearing from my position to target">
+        <circle class="ring" cx="100" cy="100" r="88"></circle>
+        <g class="tick">
+          <line x1="100" y1="14" x2="100" y2="26"></line>
+          <line x1="100" y1="174" x2="100" y2="186"></line>
+          <line x1="14" y1="100" x2="26" y2="100"></line>
+          <line x1="174" y1="100" x2="186" y2="100"></line>
+        </g>
+        <text x="100" y="42" text-anchor="middle" font-size="13">N</text>
+        <text x="100" y="164" text-anchor="middle" font-size="13">S</text>
+        <text x="42" y="104" text-anchor="middle" font-size="13">W</text>
+        <text x="158" y="104" text-anchor="middle" font-size="13">E</text>
+        <g id="needleGroup">
+          <line class="needle-back" x1="100" y1="100" x2="100" y2="128"></line>
+          <line class="needle" x1="100" y1="100" x2="100" y2="34"></line>
+        </g>
+        <circle class="hub" cx="100" cy="100" r="5"></circle>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <strong>Convention:</strong> coordinates are Wardogs map grid units, where 1 unit = 100&nbsp;m (1&nbsp;km = 10 cells) &mdash; range is converted to meters automatically. X increases east, Y increases north (a higher Y is further up the map); heading is measured clockwise from north (standard compass bearing), matching the game's azimuth. Values are saved in this browser only.
+</footer>
+
+<script>
+  (function () {
+    var els = {
+      meX: document.getElementById('meX'),
+      meY: document.getElementById('meY'),
+      tgX: document.getElementById('tgX'),
+      tgY: document.getElementById('tgY')
+    };
+    var headingVal = document.getElementById('headingVal');
+    var rangeVal = document.getElementById('rangeVal');
+    var needleGroup = document.getElementById('needleGroup');
+    var savedList = document.getElementById('savedList');
+    var saveNameInput = document.getElementById('saveName');
+    var savedPositions = document.getElementById('savedPositions');
+    var savePosNameInput = document.getElementById('savePosName');
+
+    var DEFAULTS = { meX: '50.00', meY: '40.00', tgX: '97.13', tgY: '65.56' };
+    var STORE_KEY = 'mortar-plotter-v1';
+    var TARGETS_KEY = 'mortar-plotter-targets-v1';
+    var POSITIONS_KEY = 'mortar-plotter-positions-v1';
+
+    function num(el) {
+      var v = parseFloat(el.value);
+      return isNaN(v) ? 0 : v;
+    }
+
+    function compute() {
+      var UNIT_METERS = 100; // Wardogs grid: 1 coordinate unit = 100 m (1 km = 10 cells)
+      var dx = num(els.tgX) - num(els.meX);
+      var dy = num(els.tgY) - num(els.meY);
+      var range = Math.hypot(dx, dy) * UNIT_METERS;
+      var heading = (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
+
+      headingVal.textContent = String(Math.round(heading)).padStart(3, '0');
+      rangeVal.textContent = range < 100 ? range.toFixed(1) : Math.round(range).toString();
+      needleGroup.setAttribute('transform', 'rotate(' + heading + ' 100 100)');
+
+      try {
+        var current = {};
+        Object.keys(els).forEach(function (k) { current[k] = els[k].value; });
+        localStorage.setItem(STORE_KEY, JSON.stringify(current));
+      } catch (e) {}
+    }
+
+    function load() {
+      var saved = null;
+      try {
+        saved = JSON.parse(localStorage.getItem(STORE_KEY));
+      } catch (e) {}
+      var data = saved || DEFAULTS;
+      Object.keys(els).forEach(function (k) {
+        els[k].value = (data[k] !== undefined && data[k] !== '') ? data[k] : DEFAULTS[k];
+      });
+    }
+
+    function createSavedList(opts) {
+      function loadItems() {
+        try {
+          var raw = localStorage.getItem(opts.storageKey);
+          if (raw === null) return opts.exampleItems;
+          return JSON.parse(raw) || [];
+        } catch (e) {
+          return opts.exampleItems;
+        }
+      }
+
+      function persist(list) {
+        try {
+          localStorage.setItem(opts.storageKey, JSON.stringify(list));
+        } catch (e) {}
+      }
+
+      function render() {
+        var list = loadItems();
+        opts.listEl.innerHTML = '';
+
+        if (!list.length) {
+          var empty = document.createElement('li');
+          empty.className = 'empty-note';
+          empty.textContent = opts.emptyText;
+          opts.listEl.appendChild(empty);
+          return;
+        }
+
+        list.forEach(function (t) {
+          var row = document.createElement('li');
+          row.className = 'saved-row';
+
+          var info = document.createElement('div');
+          info.className = 'info';
+          var name = document.createElement('span');
+          name.className = 'name';
+          name.textContent = t.name;
+          var coords = document.createElement('span');
+          coords.className = 'coords';
+          coords.textContent = 'X ' + t.x + '  Y ' + t.y;
+          info.appendChild(name);
+          info.appendChild(coords);
+
+          var actions = document.createElement('div');
+          actions.className = 'actions';
+
+          var loadBtn = document.createElement('button');
+          loadBtn.type = 'button';
+          loadBtn.className = 'load-btn';
+          loadBtn.textContent = 'Load';
+          loadBtn.addEventListener('click', function () {
+            opts.onLoad(t);
+            compute();
+          });
+
+          var delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'del-btn';
+          delBtn.setAttribute('aria-label', 'Delete ' + t.name);
+          delBtn.textContent = '✕';
+          delBtn.addEventListener('click', function () {
+            persist(loadItems().filter(function (x) { return x.id !== t.id; }));
+            render();
+          });
+
+          actions.appendChild(loadBtn);
+          actions.appendChild(delBtn);
+          row.appendChild(info);
+          row.appendChild(actions);
+          opts.listEl.appendChild(row);
+        });
+      }
+
+      function add(name) {
+        var coords = opts.getCurrentCoords();
+        var list = loadItems();
+        list.push({
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          name: name,
+          x: coords.x,
+          y: coords.y
+        });
+        persist(list);
+        render();
+      }
+
+      return { render: render, add: add };
+    }
+
+    var targetsList = createSavedList({
+      storageKey: TARGETS_KEY,
+      listEl: savedList,
+      emptyText: 'No saved targets yet.',
+      exampleItems: [{ id: 'example-1', name: 'North Bunker (example)', x: '112.40', y: '88.20' }],
+      getCurrentCoords: function () { return { x: els.tgX.value, y: els.tgY.value }; },
+      onLoad: function (t) { els.tgX.value = t.x; els.tgY.value = t.y; }
+    });
+
+    var positionsList = createSavedList({
+      storageKey: POSITIONS_KEY,
+      listEl: savedPositions,
+      emptyText: 'No saved mortar spots yet.',
+      exampleItems: [{ id: 'example-1', name: 'Firebase Alpha (example)', x: '44.10', y: '36.75' }],
+      getCurrentCoords: function () { return { x: els.meX.value, y: els.meY.value }; },
+      onLoad: function (t) { els.meX.value = t.x; els.meY.value = t.y; }
+    });
+
+    Object.keys(els).forEach(function (k) {
+      els[k].addEventListener('input', compute);
+    });
+
+    document.getElementById('swapBtn').addEventListener('click', function () {
+      var mx = els.meX.value, my = els.meY.value;
+      els.meX.value = els.tgX.value;
+      els.meY.value = els.tgY.value;
+      els.tgX.value = mx;
+      els.tgY.value = my;
+      compute();
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', function () {
+      Object.keys(els).forEach(function (k) { els[k].value = DEFAULTS[k]; });
+      compute();
+    });
+
+    document.getElementById('saveTargetBtn').addEventListener('click', function () {
+      var name = saveNameInput.value.trim();
+      if (!name) {
+        saveNameInput.focus();
+        return;
+      }
+      targetsList.add(name);
+      saveNameInput.value = '';
+    });
+
+    document.getElementById('savePositionBtn').addEventListener('click', function () {
+      var name = savePosNameInput.value.trim();
+      if (!name) {
+        savePosNameInput.focus();
+        return;
+      }
+      positionsList.add(name);
+      savePosNameInput.value = '';
+    });
+
+    load();
+    compute();
+    targetsList.render();
+    positionsList.render();
+  })();
+</script>
+</body>
+</html>
