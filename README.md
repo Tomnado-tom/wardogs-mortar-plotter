@@ -20,3 +20,9 @@ No build step, no dependencies — `docs/index.html` is the whole app.
 Open `docs/index.html` directly in a browser, or serve the repo's `docs/`
 folder via GitHub Pages (Settings → Pages → Deploy from a branch → `main`,
 folder `/docs`).
+
+## Data sources
+
+The `gunner-view-dial` branch's L81 Mortar range↔mil firing table is copied
+from [apollyon-sys/wardogs-calculator](https://github.com/apollyon-sys/wardogs-calculator)
+(MIT licensed), which measured it directly from the game.

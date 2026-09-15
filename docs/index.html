@@ -446,89 +446,27 @@
 
   .scope-body {
     position: relative;
-    display: flex;
-    align-items: stretch;
     flex: 1;
     min-height: 210px;
   }
 
-  .rng-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 78px;
-    flex-shrink: 0;
-  }
+  .ladder-svg { width: 100%; height: 100%; display: block; }
 
-  .rng-label {
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    color: rgba(237, 234, 224, 0.6);
-    padding: 6px 0 2px;
-  }
+  .col-label { font-size: 10px; letter-spacing: 0.12em; fill: rgba(237, 234, 224, 0.55); text-anchor: middle; }
+  .side-readout-box { fill: rgba(12, 13, 11, 0.85); stroke: rgba(237, 234, 224, 0.6); stroke-width: 1; }
+  .side-readout-text { font-size: 11px; font-weight: 600; fill: #ede0c8; text-anchor: middle; }
+  .side-readout-text.out-of-range { fill: var(--hostile); }
+  .rng-tick-minor, .mil-tick-minor { stroke: rgba(237, 234, 224, 0.3); stroke-width: 1; }
+  .rng-tick-major, .mil-tick-major { stroke: rgba(237, 234, 224, 0.65); stroke-width: 1.3; }
+  .rng-tick-label { font-size: 10px; fill: rgba(237, 234, 224, 0.8); text-anchor: end; }
+  .mil-tick-label { font-size: 10px; fill: rgba(237, 234, 224, 0.8); text-anchor: start; }
 
-  .rng-readout {
-    font-size: 12px;
-    font-weight: 600;
-    color: #ede0c8;
-    border: 1px solid rgba(237, 234, 224, 0.6);
-    background: rgba(12, 13, 11, 0.85);
-    border-radius: 2px;
-    padding: 1px 6px;
-    margin-bottom: 2px;
-    white-space: nowrap;
-  }
+  .side-center-mark { fill: var(--hostile); }
 
-  .rng-tape-wrap { position: relative; flex: 1; width: 100%; }
-  .rng-tape-svg { width: 100%; height: 100%; display: block; }
-  .rng-tick-minor { stroke: rgba(237, 234, 224, 0.3); stroke-width: 1; }
-  .rng-tick-major { stroke: rgba(237, 234, 224, 0.65); stroke-width: 1.3; }
-  .rng-tick-label { font-size: 8.5px; fill: rgba(237, 234, 224, 0.7); text-anchor: end; }
-
-  .rng-center-mark {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    width: 8px;
-    height: 2px;
-    transform: translateY(-50%);
-    background: var(--hostile);
-  }
-
-  .reticle {
-    position: relative;
-    flex: 1;
-  }
-
-  .reticle-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
   .ret-line { stroke: rgba(237, 234, 224, 0.75); stroke-width: 1.4; }
   .ret-bracket { stroke: rgba(237, 234, 224, 0.55); stroke-width: 1.2; fill: none; }
   .ret-ring { fill: none; stroke: rgba(237, 234, 224, 0.8); stroke-width: 1.2; }
   .ret-dot { fill: var(--hostile); }
-
-  .mil-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 78px;
-    flex-shrink: 0;
-    text-align: center;
-    padding: 8px;
-  }
-
-  .mil-label {
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    color: rgba(237, 234, 224, 0.55);
-  }
-
-  .mil-note {
-    font-size: 9.5px;
-    line-height: 1.4;
-    color: rgba(237, 234, 224, 0.4);
-    margin-top: 6px;
-  }
 
   .dial-caption {
     font-family: "IBM Plex Mono", monospace;
@@ -638,35 +576,31 @@
           <div class="az-center-mark"></div>
         </div>
 
-        <div class="scope-body">
-          <div class="rng-col">
-            <span class="rng-label">RNG</span>
-            <span class="rng-readout" id="rngReadout">0m</span>
-            <div class="rng-tape-wrap">
-              <svg class="rng-tape-svg" viewBox="0 0 78 210" preserveAspectRatio="none">
-                <g id="rngTicks"></g>
-              </svg>
-              <div class="rng-center-mark"></div>
-            </div>
-          </div>
+        <div class="scope-body" id="scopeBody">
+          <svg class="ladder-svg" viewBox="0 0 460 210" preserveAspectRatio="xMidYMid meet">
+            <text class="col-label" x="45" y="14">RNG</text>
+            <text class="col-label" x="415" y="14">MIL</text>
+            <rect class="side-readout-box" x="18" y="20" width="54" height="16" rx="2"></rect>
+            <text class="side-readout-text" id="rngReadout" x="45" y="31">0m</text>
+            <rect class="side-readout-box" x="388" y="20" width="54" height="16" rx="2"></rect>
+            <text class="side-readout-text" id="milReadout" x="415" y="31">&mdash;</text>
 
-          <div class="reticle" aria-hidden="true">
-            <svg class="reticle-svg" viewBox="0 0 100 100">
-              <line class="ret-line" x1="50" y1="18" x2="50" y2="34"></line>
-              <line class="ret-line" x1="50" y1="66" x2="50" y2="82"></line>
-              <polyline class="ret-bracket" points="30,38 22,38 22,46"></polyline>
-              <polyline class="ret-bracket" points="70,38 78,38 78,46"></polyline>
-              <polyline class="ret-bracket" points="30,62 22,62 22,54"></polyline>
-              <polyline class="ret-bracket" points="70,62 78,62 78,54"></polyline>
-              <circle class="ret-ring" cx="50" cy="50" r="7"></circle>
-              <circle class="ret-dot" cx="50" cy="50" r="2.4"></circle>
-            </svg>
-          </div>
+            <g id="ballisticsLadder"></g>
 
-          <div class="mil-col">
-            <span class="mil-label">MIL</span>
-            <span class="mil-note">per-weapon table<br>not included</span>
-          </div>
+            <polygon class="side-center-mark" points="86,105 96,100 96,110"></polygon>
+            <polygon class="side-center-mark" points="374,105 364,100 364,110"></polygon>
+
+            <g transform="translate(230 105)" aria-hidden="true">
+              <line class="ret-line" x1="0" y1="-32" x2="0" y2="-16"></line>
+              <line class="ret-line" x1="0" y1="16" x2="0" y2="32"></line>
+              <polyline class="ret-bracket" points="-20,-12 -28,-12 -28,-4"></polyline>
+              <polyline class="ret-bracket" points="20,-12 28,-12 28,-4"></polyline>
+              <polyline class="ret-bracket" points="-20,12 -28,12 -28,4"></polyline>
+              <polyline class="ret-bracket" points="20,12 28,12 28,4"></polyline>
+              <circle class="ret-ring" cx="0" cy="0" r="7"></circle>
+              <circle class="ret-dot" cx="0" cy="0" r="2.4"></circle>
+            </g>
+          </svg>
         </div>
 
         <div class="scope-vignette"></div>
@@ -689,8 +623,9 @@
     var rangeVal = document.getElementById('rangeVal');
     var azTicks = document.getElementById('azTicks');
     var azReadout = document.getElementById('azReadout');
-    var rngTicks = document.getElementById('rngTicks');
+    var ballisticsLadder = document.getElementById('ballisticsLadder');
     var rngReadout = document.getElementById('rngReadout');
+    var milReadout = document.getElementById('milReadout');
     var savedList = document.getElementById('savedList');
     var saveNameInput = document.getElementById('saveName');
     var savedPositions = document.getElementById('savedPositions');
@@ -711,7 +646,42 @@
     var SVG_NS = 'http://www.w3.org/2000/svg';
 
     var AZ_CENTER_X = 200, AZ_PX_PER_DEG = 4;
-    var RNG_CENTER_Y = 105, RNG_PX_PER_M = 1.6, RNG_MIN_CENTER = 90;
+
+    // L81 Mortar single-arc firing table: [range meters, elevation mils].
+    // Source: data/weapons.json in apollyon-sys/wardogs-calculator (MIT licensed),
+    // https://github.com/apollyon-sys/wardogs-calculator
+    var L81_BALLISTICS = [
+      [80, 950], [87, 940], [93, 930], [99, 920], [105, 910], [110, 900],
+      [115, 890], [118, 880], [122, 870], [127, 860], [132, 850], [140, 840],
+      [151, 830], [163, 820], [175, 810], [187, 800], [198, 790], [208, 780],
+      [219, 770], [229, 760], [239, 750], [250, 740], [260, 730], [270, 720],
+      [280, 710], [290, 700], [300, 690], [310, 680], [319, 670], [329, 660],
+      [339, 650], [348, 640], [358, 630], [367, 620], [376, 610], [385, 600],
+      [394, 590], [403, 580], [412, 570], [420, 560], [429, 550], [437, 540],
+      [446, 530], [454, 520], [462, 510], [470, 500], [478, 490], [486, 480],
+      [494, 470], [501, 460], [509, 450], [516, 440], [524, 430], [531, 420],
+      [538, 410], [545, 400], [552, 390], [559, 380], [565, 370], [572, 360],
+      [578, 350], [585, 340], [591, 330], [597, 320], [603, 310], [609, 300],
+      [615, 290], [620, 280], [626, 270], [631, 260], [636, 250], [641, 240],
+      [646, 230], [651, 220], [656, 210], [661, 200], [666, 190], [670, 180],
+      [675, 170], [680, 160], [684, 150], [688, 140], [693, 130], [697, 120]
+    ];
+    var L81_MIN_RANGE = 132, L81_MAX_RANGE = 684;
+
+    var RNG_CENTER_Y = 105, PX_PER_MIL = 0.9;
+
+    function interpolateMil(rangeM, table) {
+      if (rangeM <= table[0][0]) return table[0][1];
+      if (rangeM >= table[table.length - 1][0]) return table[table.length - 1][1];
+      for (var i = 0; i < table.length - 1; i++) {
+        var a = table[i], b = table[i + 1];
+        if (rangeM >= a[0] && rangeM <= b[0]) {
+          var t = (rangeM - a[0]) / (b[0] - a[0]);
+          return a[1] + t * (b[1] - a[1]);
+        }
+      }
+      return null;
+    }
 
     var COMPASS_DIRS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 
@@ -743,28 +713,44 @@
       }
     }
 
-    function buildRangeTicks() {
-      for (var m = -50; m <= 900; m += 5) {
-        var isMajor = m % 25 === 0;
-        var y = -m * RNG_PX_PER_M;
+    function buildBallisticsLadder() {
+      L81_BALLISTICS.forEach(function (row, i) {
+        var range = row[0], mil = row[1];
+        var y = mil * PX_PER_MIL;
+        var isMajor = mil % 50 === 0;
 
-        var tick = document.createElementNS(SVG_NS, 'line');
-        tick.setAttribute('class', isMajor ? 'rng-tick-major' : 'rng-tick-minor');
-        tick.setAttribute('y1', y);
-        tick.setAttribute('y2', y);
-        tick.setAttribute('x1', isMajor ? 46 : 52);
-        tick.setAttribute('x2', 60);
-        rngTicks.appendChild(tick);
+        var rngTick = document.createElementNS(SVG_NS, 'line');
+        rngTick.setAttribute('class', isMajor ? 'rng-tick-major' : 'rng-tick-minor');
+        rngTick.setAttribute('y1', y);
+        rngTick.setAttribute('y2', y);
+        rngTick.setAttribute('x1', isMajor ? 76 : 82);
+        rngTick.setAttribute('x2', 90);
+        ballisticsLadder.appendChild(rngTick);
+
+        var milTick = document.createElementNS(SVG_NS, 'line');
+        milTick.setAttribute('class', isMajor ? 'mil-tick-major' : 'mil-tick-minor');
+        milTick.setAttribute('y1', y);
+        milTick.setAttribute('y2', y);
+        milTick.setAttribute('x1', 370);
+        milTick.setAttribute('x2', isMajor ? 384 : 378);
+        ballisticsLadder.appendChild(milTick);
 
         if (isMajor) {
-          var label = document.createElementNS(SVG_NS, 'text');
-          label.setAttribute('class', 'rng-tick-label');
-          label.setAttribute('x', 42);
-          label.setAttribute('y', y + 3);
-          label.textContent = m + 'M';
-          rngTicks.appendChild(label);
+          var rngLabel = document.createElementNS(SVG_NS, 'text');
+          rngLabel.setAttribute('class', 'rng-tick-label');
+          rngLabel.setAttribute('x', 72);
+          rngLabel.setAttribute('y', y + 3);
+          rngLabel.textContent = range + 'M';
+          ballisticsLadder.appendChild(rngLabel);
+
+          var milLabel = document.createElementNS(SVG_NS, 'text');
+          milLabel.setAttribute('class', 'mil-tick-label');
+          milLabel.setAttribute('x', 388);
+          milLabel.setAttribute('y', y + 3);
+          milLabel.textContent = mil.toString();
+          ballisticsLadder.appendChild(milLabel);
         }
-      }
+      });
     }
 
     function parseCoords(str) {
@@ -800,9 +786,15 @@
       azTicks.setAttribute('transform', 'translate(' + (AZ_CENTER_X - headingRounded * AZ_PX_PER_DEG) + ' 0)');
 
       var rangeRounded = Math.round(range);
+      var inRange = rangeRounded >= L81_MIN_RANGE && rangeRounded <= L81_MAX_RANGE;
+      var currentMil = interpolateMil(rangeRounded, L81_BALLISTICS);
+
       rngReadout.textContent = rangeRounded + 'm';
-      var rngCenter = Math.max(rangeRounded, RNG_MIN_CENTER);
-      rngTicks.setAttribute('transform', 'translate(0 ' + (RNG_CENTER_Y + rngCenter * RNG_PX_PER_M) + ')');
+      rngReadout.classList.toggle('out-of-range', !inRange);
+      milReadout.textContent = inRange ? Math.round(currentMil).toString() : 'N/A';
+      milReadout.classList.toggle('out-of-range', !inRange);
+
+      ballisticsLadder.setAttribute('transform', 'translate(0 ' + (RNG_CENTER_Y - currentMil * PX_PER_MIL) + ')');
 
       try {
         var current = {};
@@ -972,7 +964,7 @@
     });
 
     buildAzimuthTicks();
-    buildRangeTicks();
+    buildBallisticsLadder();
     load();
     compute();
     targetsList.render();
