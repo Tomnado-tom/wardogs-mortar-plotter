@@ -413,35 +413,6 @@
 
   .tile-value.out-of-range { color: var(--hostile); }
 
-  .tile-note {
-    font-size: 0.78rem;
-    color: var(--ink-muted);
-    text-align: center;
-    margin: -2px 0 0;
-  }
-
-  .compass-wrap {
-    display: flex;
-    justify-content: center;
-  }
-
-  .compass {
-    width: 100%;
-    max-width: 220px;
-    height: auto;
-  }
-
-  .compass text {
-    font-family: "IBM Plex Mono", monospace;
-    fill: var(--ink-muted);
-  }
-
-  .compass .ring { fill: var(--surface-2); stroke: var(--line); }
-  .compass .tick { stroke: var(--line); }
-  .compass .needle { stroke: var(--hostile); stroke-width: 3; stroke-linecap: round; }
-  .compass .needle-back { stroke: var(--friendly); stroke-width: 2.5; stroke-linecap: round; }
-  .compass .hub { fill: var(--brass-strong); }
-
   @media (prefers-reduced-motion: no-preference) {
     .tile-value { transition: color 0.15s ease; }
   }
@@ -551,28 +522,6 @@
         <span id="milValHigh" class="tile-value">&mdash;</span>
       </div>
     </div>
-    <p class="tile-note" id="tileNote">Mil is the L81 Mortar's real elevation setting (132&ndash;684&nbsp;m firing table); shows N/A outside that range.</p>
-
-    <div class="compass-wrap">
-      <svg class="compass" viewBox="0 0 200 200" role="img" aria-label="Compass showing bearing from my position to target">
-        <circle class="ring" cx="100" cy="100" r="88"></circle>
-        <g class="tick">
-          <line x1="100" y1="14" x2="100" y2="26"></line>
-          <line x1="100" y1="174" x2="100" y2="186"></line>
-          <line x1="14" y1="100" x2="26" y2="100"></line>
-          <line x1="174" y1="100" x2="186" y2="100"></line>
-        </g>
-        <text x="100" y="42" text-anchor="middle" font-size="13">N</text>
-        <text x="100" y="164" text-anchor="middle" font-size="13">S</text>
-        <text x="42" y="104" text-anchor="middle" font-size="13">W</text>
-        <text x="158" y="104" text-anchor="middle" font-size="13">E</text>
-        <g id="needleGroup">
-          <line class="needle-back" x1="100" y1="100" x2="100" y2="128"></line>
-          <line class="needle" x1="100" y1="100" x2="100" y2="34"></line>
-        </g>
-        <circle class="hub" cx="100" cy="100" r="5"></circle>
-      </svg>
-    </div>
   </div>
 </div>
 
@@ -593,9 +542,7 @@
     var milTileSingle = document.getElementById('milTileSingle');
     var milTileLow = document.getElementById('milTileLow');
     var milTileHigh = document.getElementById('milTileHigh');
-    var tileNote = document.getElementById('tileNote');
     var weaponSelect = document.getElementById('weaponSelect');
-    var needleGroup = document.getElementById('needleGroup');
     var savedList = document.getElementById('savedList');
     var saveNameInput = document.getElementById('saveName');
     var savedPositions = document.getElementById('savedPositions');
@@ -728,9 +675,6 @@
           milVal.classList.add('out-of-range');
         }
       }
-
-      tileNote.textContent = 'Mil is ' + weapon.name + '’s real elevation setting (' +
-        weapon.minRange + '–' + weapon.maxRange + ' m firing table); shows N/A outside that range.';
     }
 
     function parseCoords(str) {
@@ -760,7 +704,6 @@
 
       headingVal.textContent = String(Math.round(heading)).padStart(3, '0');
       rangeVal.textContent = range < 100 ? range.toFixed(1) : Math.round(range).toString();
-      needleGroup.setAttribute('transform', 'rotate(' + heading + ' 100 100)');
 
       var rangeRounded = Math.round(range);
       updateWeaponResult(rangeRounded);
