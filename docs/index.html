@@ -380,6 +380,15 @@
     margin-left: 2px;
   }
 
+  .tile-value.out-of-range { color: var(--hostile); }
+
+  .tile-note {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    text-align: center;
+    margin: -2px 0 0;
+  }
+
   .compass-wrap {
     display: flex;
     justify-content: center;
@@ -490,7 +499,12 @@
         <span class="tile-label">Range</span>
         <span id="rangeVal" class="tile-value">0</span><span class="tile-unit">m</span>
       </div>
+      <div class="tile">
+        <span class="tile-label">Mil (L81)</span>
+        <span id="milVal" class="tile-value">&mdash;</span>
+      </div>
     </div>
+    <p class="tile-note">Mil is the L81 Mortar's real elevation setting (132&ndash;684&nbsp;m firing table); shows N/A outside that range.</p>
 
     <div class="compass-wrap">
       <svg class="compass" viewBox="0 0 200 200" role="img" aria-label="Compass showing bearing from my position to target">
@@ -526,6 +540,7 @@
     };
     var headingVal = document.getElementById('headingVal');
     var rangeVal = document.getElementById('rangeVal');
+    var milVal = document.getElementById('milVal');
     var needleGroup = document.getElementById('needleGroup');
     var savedList = document.getElementById('savedList');
     var saveNameInput = document.getElementById('saveName');
@@ -542,6 +557,40 @@
     function num(el) {
       var v = parseFloat(el.value);
       return isNaN(v) ? 0 : v;
+    }
+
+    // L81 Mortar single-arc firing table: [range meters, elevation mils].
+    // Source: data/weapons.json in apollyon-sys/wardogs-calculator (MIT licensed),
+    // https://github.com/apollyon-sys/wardogs-calculator
+    var L81_BALLISTICS = [
+      [80, 950], [87, 940], [93, 930], [99, 920], [105, 910], [110, 900],
+      [115, 890], [118, 880], [122, 870], [127, 860], [132, 850], [140, 840],
+      [151, 830], [163, 820], [175, 810], [187, 800], [198, 790], [208, 780],
+      [219, 770], [229, 760], [239, 750], [250, 740], [260, 730], [270, 720],
+      [280, 710], [290, 700], [300, 690], [310, 680], [319, 670], [329, 660],
+      [339, 650], [348, 640], [358, 630], [367, 620], [376, 610], [385, 600],
+      [394, 590], [403, 580], [412, 570], [420, 560], [429, 550], [437, 540],
+      [446, 530], [454, 520], [462, 510], [470, 500], [478, 490], [486, 480],
+      [494, 470], [501, 460], [509, 450], [516, 440], [524, 430], [531, 420],
+      [538, 410], [545, 400], [552, 390], [559, 380], [565, 370], [572, 360],
+      [578, 350], [585, 340], [591, 330], [597, 320], [603, 310], [609, 300],
+      [615, 290], [620, 280], [626, 270], [631, 260], [636, 250], [641, 240],
+      [646, 230], [651, 220], [656, 210], [661, 200], [666, 190], [670, 180],
+      [675, 170], [680, 160], [684, 150], [688, 140], [693, 130], [697, 120]
+    ];
+    var L81_MIN_RANGE = 132, L81_MAX_RANGE = 684;
+
+    function interpolateMil(rangeM, table) {
+      if (rangeM <= table[0][0]) return table[0][1];
+      if (rangeM >= table[table.length - 1][0]) return table[table.length - 1][1];
+      for (var i = 0; i < table.length - 1; i++) {
+        var a = table[i], b = table[i + 1];
+        if (rangeM >= a[0] && rangeM <= b[0]) {
+          var t = (rangeM - a[0]) / (b[0] - a[0]);
+          return a[1] + t * (b[1] - a[1]);
+        }
+      }
+      return null;
     }
 
     function parseCoords(str) {
@@ -572,6 +621,11 @@
       headingVal.textContent = String(Math.round(heading)).padStart(3, '0');
       rangeVal.textContent = range < 100 ? range.toFixed(1) : Math.round(range).toString();
       needleGroup.setAttribute('transform', 'rotate(' + heading + ' 100 100)');
+
+      var rangeRounded = Math.round(range);
+      var inRange = rangeRounded >= L81_MIN_RANGE && rangeRounded <= L81_MAX_RANGE;
+      milVal.textContent = inRange ? Math.round(interpolateMil(rangeRounded, L81_BALLISTICS)).toString() : 'N/A';
+      milVal.classList.toggle('out-of-range', !inRange);
 
       try {
         var current = {};
