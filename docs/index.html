@@ -418,7 +418,7 @@
   <div class="positions">
     <div class="pos-card force-friendly">
       <h2>My Position</h2>
-      <p class="hint">Example values shown &mdash; replace with your grid coordinates (1 unit = 100&nbsp;m).</p>
+      <p class="hint">Paste from the game above, or type your grid coordinates (1 unit = 100&nbsp;m).</p>
       <div class="field paste-field">
         <label for="mePaste">Paste from game</label>
         <input id="mePaste" type="text" placeholder="x94.53, y109.03" autocomplete="off">
@@ -426,11 +426,11 @@
       <div class="field-row">
         <div class="field">
           <label for="meX">X &middot; Easting</label>
-          <input id="meX" type="number" inputmode="decimal" step="any" value="50.00">
+          <input id="meX" type="number" inputmode="decimal" step="any" placeholder="0.00">
         </div>
         <div class="field">
           <label for="meY">Y &middot; Northing</label>
-          <input id="meY" type="number" inputmode="decimal" step="any" value="40.00">
+          <input id="meY" type="number" inputmode="decimal" step="any" placeholder="0.00">
         </div>
       </div>
     </div>
@@ -447,7 +447,7 @@
 
     <div class="pos-card force-hostile">
       <h2>Target Position</h2>
-      <p class="hint">Example values shown &mdash; replace with your grid coordinates (1 unit = 100&nbsp;m).</p>
+      <p class="hint">Paste from the game above, or type your grid coordinates (1 unit = 100&nbsp;m).</p>
       <div class="field paste-field">
         <label for="tgPaste">Paste from game</label>
         <input id="tgPaste" type="text" placeholder="x94.53, y109.03" autocomplete="off">
@@ -455,11 +455,11 @@
       <div class="field-row">
         <div class="field">
           <label for="tgX">X &middot; Easting</label>
-          <input id="tgX" type="number" inputmode="decimal" step="any" value="97.13">
+          <input id="tgX" type="number" inputmode="decimal" step="any" placeholder="0.00">
         </div>
         <div class="field">
           <label for="tgY">Y &middot; Northing</label>
-          <input id="tgY" type="number" inputmode="decimal" step="any" value="65.56">
+          <input id="tgY" type="number" inputmode="decimal" step="any" placeholder="0.00">
         </div>
       </div>
     </div>
@@ -476,7 +476,7 @@
 
     <div class="toolbar">
       <button id="swapBtn" type="button">Swap Me &harr; Target</button>
-      <button id="resetBtn" type="button">Reset to Example</button>
+      <button id="resetBtn" type="button">Clear</button>
     </div>
   </div>
 
@@ -534,7 +534,7 @@
     var mePasteInput = document.getElementById('mePaste');
     var tgPasteInput = document.getElementById('tgPaste');
 
-    var DEFAULTS = { meX: '50.00', meY: '40.00', tgX: '97.13', tgY: '65.56' };
+    var DEFAULTS = { meX: '', meY: '', tgX: '', tgY: '' };
     var STORE_KEY = 'mortar-plotter-v1';
     var TARGETS_KEY = 'mortar-plotter-targets-v1';
     var POSITIONS_KEY = 'mortar-plotter-positions-v1';
