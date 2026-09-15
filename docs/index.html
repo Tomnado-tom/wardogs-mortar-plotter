@@ -339,6 +339,37 @@
     gap: 18px;
   }
 
+  .weapon-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .weapon-row label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .weapon-row select {
+    flex: 1;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.9rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+    padding: 7px 10px;
+  }
+
+  .weapon-row select:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+  }
+
   .readout-tiles {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
@@ -490,6 +521,14 @@
   </div>
 
   <div class="solution">
+    <div class="weapon-row">
+      <label for="weaponSelect">Weapon</label>
+      <select id="weaponSelect">
+        <option value="l81">L81 Mortar</option>
+        <option value="sph2">SPH-2</option>
+      </select>
+    </div>
+
     <div class="readout-tiles">
       <div class="tile">
         <span class="tile-label">Heading</span>
@@ -499,12 +538,20 @@
         <span class="tile-label">Range</span>
         <span id="rangeVal" class="tile-value">0</span><span class="tile-unit">m</span>
       </div>
-      <div class="tile">
-        <span class="tile-label">Mil (L81)</span>
+      <div class="tile" id="milTileSingle">
+        <span class="tile-label">Mil</span>
         <span id="milVal" class="tile-value">&mdash;</span>
       </div>
+      <div class="tile" id="milTileLow" hidden>
+        <span class="tile-label">Mil (Low)</span>
+        <span id="milValLow" class="tile-value">&mdash;</span>
+      </div>
+      <div class="tile" id="milTileHigh" hidden>
+        <span class="tile-label">Mil (High)</span>
+        <span id="milValHigh" class="tile-value">&mdash;</span>
+      </div>
     </div>
-    <p class="tile-note">Mil is the L81 Mortar's real elevation setting (132&ndash;684&nbsp;m firing table); shows N/A outside that range.</p>
+    <p class="tile-note" id="tileNote">Mil is the L81 Mortar's real elevation setting (132&ndash;684&nbsp;m firing table); shows N/A outside that range.</p>
 
     <div class="compass-wrap">
       <svg class="compass" viewBox="0 0 200 200" role="img" aria-label="Compass showing bearing from my position to target">
@@ -541,6 +588,13 @@
     var headingVal = document.getElementById('headingVal');
     var rangeVal = document.getElementById('rangeVal');
     var milVal = document.getElementById('milVal');
+    var milValLow = document.getElementById('milValLow');
+    var milValHigh = document.getElementById('milValHigh');
+    var milTileSingle = document.getElementById('milTileSingle');
+    var milTileLow = document.getElementById('milTileLow');
+    var milTileHigh = document.getElementById('milTileHigh');
+    var tileNote = document.getElementById('tileNote');
+    var weaponSelect = document.getElementById('weaponSelect');
     var needleGroup = document.getElementById('needleGroup');
     var savedList = document.getElementById('savedList');
     var saveNameInput = document.getElementById('saveName');
@@ -559,7 +613,7 @@
       return isNaN(v) ? 0 : v;
     }
 
-    // L81 Mortar single-arc firing table: [range meters, elevation mils].
+    // Firing tables: [range meters, elevation mils], both arcs sorted ascending by range.
     // Source: data/weapons.json in apollyon-sys/wardogs-calculator (MIT licensed),
     // https://github.com/apollyon-sys/wardogs-calculator
     var L81_BALLISTICS = [
@@ -578,7 +632,52 @@
       [646, 230], [651, 220], [656, 210], [661, 200], [666, 190], [670, 180],
       [675, 170], [680, 160], [684, 150], [688, 140], [693, 130], [697, 120]
     ];
-    var L81_MIN_RANGE = 132, L81_MAX_RANGE = 684;
+
+    var SPH2_LOW = [
+      [1181, 20], [1232, 30], [1283, 40], [1334, 50], [1384, 60], [1433, 70],
+      [1482, 80], [1529, 90], [1576, 100], [1622, 110], [1666, 120], [1709, 130],
+      [1751, 140], [1792, 150], [1832, 160], [1870, 170], [1907, 180], [1944, 190],
+      [1979, 200], [2014, 210], [2046, 220], [2079, 230], [2110, 240], [2139, 250],
+      [2168, 260], [2196, 270], [2223, 280], [2249, 290], [2273, 300], [2296, 310],
+      [2319, 320], [2341, 330], [2362, 340], [2383, 350], [2403, 360], [2422, 370],
+      [2439, 380], [2456, 390], [2471, 400], [2485, 410], [2499, 420], [2513, 430],
+      [2526, 440], [2538, 450], [2550, 460], [2561, 470], [2570, 480], [2579, 490],
+      [2586, 500], [2593, 510], [2599, 520], [2605, 530], [2610, 540], [2615, 550],
+      [2620, 560], [2623, 570], [2626, 580], [2628, 590], [2629, 600]
+    ];
+
+    var SPH2_HIGH = [
+      [735, 1400], [780, 1390], [825, 1380], [869, 1370], [913, 1360], [956, 1350],
+      [999, 1340], [1041, 1330], [1083, 1320], [1124, 1310], [1165, 1300], [1205, 1290],
+      [1245, 1280], [1285, 1270], [1324, 1260], [1363, 1250], [1401, 1240], [1438, 1230],
+      [1475, 1220], [1512, 1210], [1547, 1200], [1582, 1190], [1616, 1180], [1650, 1170],
+      [1684, 1160], [1717, 1150], [1750, 1140], [1782, 1130], [1813, 1120], [1844, 1110],
+      [1875, 1100], [1905, 1090], [1934, 1080], [1963, 1070], [1991, 1060], [2019, 1050],
+      [2046, 1040], [2072, 1030], [2098, 1020], [2123, 1010], [2147, 1000], [2171, 990],
+      [2194, 980], [2217, 970], [2239, 960], [2261, 950], [2282, 940], [2303, 930],
+      [2323, 920], [2342, 910], [2360, 900], [2378, 890], [2395, 880], [2412, 870],
+      [2429, 860], [2444, 850], [2460, 840], [2474, 830], [2488, 820], [2501, 810],
+      [2513, 800], [2524, 790], [2536, 780], [2546, 770], [2557, 760], [2567, 750],
+      [2576, 740], [2584, 730], [2592, 720], [2599, 710], [2604, 700], [2609, 690],
+      [2613, 680], [2617, 670], [2621, 660], [2624, 650], [2626, 640], [2628, 630],
+      [2629, 620], [2629, 610]
+    ];
+
+    var WEAPONS = {
+      l81: {
+        name: "L81 Mortar",
+        minRange: 132,
+        maxRange: 684,
+        arcs: { single: L81_BALLISTICS }
+      },
+      sph2: {
+        name: "SPH-2",
+        minRange: 780,
+        maxRange: 2629,
+        arcs: { low: SPH2_LOW, high: SPH2_HIGH }
+      }
+    };
+    var WEAPON_STORE_KEY = 'mortar-plotter-weapon-v1';
 
     function interpolateMil(rangeM, table) {
       if (rangeM <= table[0][0]) return table[0][1];
@@ -591,6 +690,47 @@
         }
       }
       return null;
+    }
+
+    function tableCovers(table, rangeM) {
+      return rangeM >= table[0][0] && rangeM <= table[table.length - 1][0];
+    }
+
+    function updateWeaponResult(rangeRounded) {
+      var weapon = WEAPONS[weaponSelect.value] || WEAPONS.l81;
+      var inRange = rangeRounded >= weapon.minRange && rangeRounded <= weapon.maxRange;
+
+      if (weapon.arcs.single) {
+        milTileLow.hidden = true;
+        milTileHigh.hidden = true;
+        milTileSingle.hidden = false;
+
+        var singleValid = inRange && tableCovers(weapon.arcs.single, rangeRounded);
+        milVal.textContent = singleValid ? Math.round(interpolateMil(rangeRounded, weapon.arcs.single)).toString() : 'N/A';
+        milVal.classList.toggle('out-of-range', !singleValid);
+      } else {
+        var lowValid = inRange && tableCovers(weapon.arcs.low, rangeRounded);
+        var highValid = inRange && tableCovers(weapon.arcs.high, rangeRounded);
+
+        milTileLow.hidden = !lowValid;
+        if (lowValid) {
+          milValLow.textContent = Math.round(interpolateMil(rangeRounded, weapon.arcs.low)).toString();
+        }
+
+        milTileHigh.hidden = !highValid;
+        if (highValid) {
+          milValHigh.textContent = Math.round(interpolateMil(rangeRounded, weapon.arcs.high)).toString();
+        }
+
+        milTileSingle.hidden = lowValid || highValid;
+        if (!lowValid && !highValid) {
+          milVal.textContent = 'N/A';
+          milVal.classList.add('out-of-range');
+        }
+      }
+
+      tileNote.textContent = 'Mil is ' + weapon.name + '’s real elevation setting (' +
+        weapon.minRange + '–' + weapon.maxRange + ' m firing table); shows N/A outside that range.';
     }
 
     function parseCoords(str) {
@@ -623,9 +763,7 @@
       needleGroup.setAttribute('transform', 'rotate(' + heading + ' 100 100)');
 
       var rangeRounded = Math.round(range);
-      var inRange = rangeRounded >= L81_MIN_RANGE && rangeRounded <= L81_MAX_RANGE;
-      milVal.textContent = inRange ? Math.round(interpolateMil(rangeRounded, L81_BALLISTICS)).toString() : 'N/A';
-      milVal.classList.toggle('out-of-range', !inRange);
+      updateWeaponResult(rangeRounded);
 
       try {
         var current = {};
@@ -793,6 +931,20 @@
       positionsList.add(name);
       savePosNameInput.value = '';
     });
+
+    weaponSelect.addEventListener('change', function () {
+      try {
+        localStorage.setItem(WEAPON_STORE_KEY, weaponSelect.value);
+      } catch (e) {}
+      compute();
+    });
+
+    try {
+      var savedWeapon = localStorage.getItem(WEAPON_STORE_KEY);
+      if (savedWeapon && WEAPONS[savedWeapon]) {
+        weaponSelect.value = savedWeapon;
+      }
+    } catch (e) {}
 
     load();
     compute();
